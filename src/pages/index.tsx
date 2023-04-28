@@ -9,17 +9,32 @@ dayjs.extend(relativeTime)
 
 import { RouterOutputs, api } from "~/utils/api";
 import Loading from "~/components/loading";
+import { useRef } from "react";
 
 const CreatePostWizard = () => {
   const { user } = useUser();
+  const { mutate } = api.posts.create.useMutation()
+  const inputRef = useRef<HTMLInputElement>()
+
+  const createPost = () => {
+    if (!inputRef.current) return
+
+    mutate({ content: inputRef.current.value })
+    inputRef.current.value = ''
+  }
 
   if (!user) return null
 
   return (
-    <div className="flex w-full gap-x-3">
+    <form onSubmit={
+      (e) => {
+        e.preventDefault()
+        createPost()
+      }} className="flex w-full gap-x-3" >
       <img className="w-14 h-14 rounded-full" src={user.profileImageUrl} alt="profile" />
-      <input placeholder="Type some emojis!" className="bg-transparent grow outline-none" />
-    </div>
+      <input placeholder="Type some emojis!" ref={inputRef} className="bg-transparent grow outline-none" />
+      <button type="submit"> Post</button>
+    </form>
   )
 }
 
@@ -27,7 +42,7 @@ type PostWithUser = RouterOutputs["posts"]["getAll"][number]
 const PostView = (props: PostWithUser) => {
   const { post, author } = props
   return (
-    <div className="flex gap-x-3">
+    <div className="flex gap-x-3 p-4 border-b border-slate-400">
       <Image className="flex w-14 h-14 rounded-full" src={author.profilePicture} alt={`@${author.username}'s profile picture`} width={56} height={56} />
       <div className="flex flex-col">
         <div className="space-x-1 text-slate-300">
@@ -50,9 +65,11 @@ const PostsFeed = () => {
 
   if (!data) return null
 
-  return (<div className="p-4 border-b border-slate-400">
-    {data.map((fullPost) => <PostView key={fullPost.post.id} {...fullPost} />)}
-  </div>)
+  return (
+    <div>
+      {data.map((fullPost) => <PostView key={fullPost.post.id} {...fullPost} />)}
+    </div>
+  )
 }
 
 const Home: NextPage = () => {
