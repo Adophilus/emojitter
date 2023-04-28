@@ -8,6 +8,7 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 dayjs.extend(relativeTime)
 
 import { RouterOutputs, api } from "~/utils/api";
+import Loading from "~/components/loading";
 
 const CreatePostWizard = () => {
   const { user } = useUser();
@@ -40,17 +41,22 @@ const PostView = (props: PostWithUser) => {
   )
 }
 
+const PostsFeed = () => {
+  const { data, isLoading: isLoadingPosts } = api.posts.getAll.useQuery();
+
+  if (isLoadingPosts) return <Loading />
+
+  if (!data) return null
+
+  return (<div className="p-4 border-b border-slate-400">
+    {data.map((fullPost) => <PostView key={fullPost.post.id} {...fullPost} />)}
+  </div>)
+}
+
 const Home: NextPage = () => {
-  const { data, isLoading } = api.posts.getAll.useQuery();
-  const user = useUser()
+  const { user, isSignedIn: isUserSignedIn, isLoaded: hasLoadedUser } = useUser()
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!data) {
-    return <div>Something went wrong!</div>;
-  }
+  if (!hasLoadedUser) return null
 
   return (
     <>
@@ -63,12 +69,10 @@ const Home: NextPage = () => {
         <div className="w-full md:max-w-2xl border-x border-slate-400">
           <div className="flex p-4 border-b border-slate-400">
             <div className="grow">
-              {!user.isSignedIn ? <SignInButton /> : <CreatePostWizard />}
+              {!isUserSignedIn ? <SignInButton /> : <CreatePostWizard />}
             </div>
           </div>
-          <div className="p-4 border-b border-slate-400">
-            {data.map((fullPost) => <PostView key={fullPost.post.id} {...fullPost} />)}
-          </div>
+          <PostsFeed />
         </div>
       </main>
     </>
