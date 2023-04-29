@@ -1,4 +1,3 @@
-import { User } from "@clerk/nextjs/api";
 import { clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { Ratelimit } from "@upstash/ratelimit";
@@ -6,6 +5,7 @@ import { Redis } from "@upstash/redis";
 import { z } from "zod";
 
 import { createTRPCRouter, privateProcedure, publicProcedure } from "~/server/api/trpc";
+import mapUserToAuthor from "~/server/helpers/mapUserToAuthor";
 
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
@@ -14,9 +14,6 @@ const ratelimit = new Ratelimit({
   prefix: "@upstash/ratelimit",
 });
 
-const mapUserToAuthor = (user: User) => {
-  return { id: user.id, username: user.username, profilePicture: user.profileImageUrl };
-}
 
 export const postsRouter = createTRPCRouter({
   create: privateProcedure.input(z.object({
@@ -38,11 +35,10 @@ export const postsRouter = createTRPCRouter({
   }),
 
   getAll: publicProcedure.query(async ({ ctx }) => {
-    const posts = await ctx.prisma.post.findMany({ take: 100 });
+    const posts = await ctx.prisma.post.findMany({ take: 100, orderBy: [{ createdAt: "desc" }] });
     const users = await clerkClient.users.getUserList({
       userId: posts.map((post) => post.authorId),
-      limit: 100,
-      orderBy: "+created_at"
+      limit: 100
     })
 
     return posts.map(post => {
