@@ -10,17 +10,25 @@ dayjs.extend(relativeTime)
 import { RouterOutputs, api } from "~/utils/api";
 import Loading from "~/components/loading";
 import { useRef } from "react";
+import toast from "react-hot-toast";
 
 const CreatePostWizard = () => {
   const { user } = useUser();
   const inputRef = useRef<HTMLInputElement>()
   const ctx = api.useContext()
   const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
-    onSuccess: () => {
+    onError: (e) => {
+      const errorMessage = e.data?.zodError?.fieldErrors.content
+      if (errorMessage && errorMessage[0])
+        toast.error(errorMessage[0])
+      else
+        toast.error("Failed to post. Please try again later!")
+    },
+    onSuccess: async () => {
       if (!inputRef.current) return
 
       inputRef.current.value = ''
-      ctx.posts.getAll.invalidate()
+      await ctx.posts.getAll.invalidate()
     }
   })
 
@@ -39,8 +47,8 @@ const CreatePostWizard = () => {
         if (!isPosting)
           createPost()
       }} className="flex w-full gap-x-3" >
-      <img className="w-14 h-14 rounded-full" src={user.profileImageUrl} alt="profile" />
-      <input placeholder="Type some emojis!" ref={inputRef} className="bg-transparent grow outline-none" />
+      <Image className="flex w-14 h-14 rounded-full" src={user.profileImageUrl} alt={`@${user.id}'s profile picture`} width={56} height={56} />
+      <input placeholder="Type some emojis!" ref={inputRef} className="bg-transparent grow outline-none" disabled={isPosting} />
       <button type="submit" disabled={isPosting}>Post</button>
     </form>
   )
