@@ -13,14 +13,21 @@ import { useRef } from "react";
 
 const CreatePostWizard = () => {
   const { user } = useUser();
-  const { mutate } = api.posts.create.useMutation()
   const inputRef = useRef<HTMLInputElement>()
+  const ctx = api.useContext()
+  const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
+    onSuccess: () => {
+      if (!inputRef.current) return
+
+      inputRef.current.value = ''
+      ctx.posts.getAll.invalidate()
+    }
+  })
 
   const createPost = () => {
     if (!inputRef.current) return
 
     mutate({ content: inputRef.current.value })
-    inputRef.current.value = ''
   }
 
   if (!user) return null
@@ -29,11 +36,12 @@ const CreatePostWizard = () => {
     <form onSubmit={
       (e) => {
         e.preventDefault()
-        createPost()
+        if (!isPosting)
+          createPost()
       }} className="flex w-full gap-x-3" >
       <img className="w-14 h-14 rounded-full" src={user.profileImageUrl} alt="profile" />
       <input placeholder="Type some emojis!" ref={inputRef} className="bg-transparent grow outline-none" />
-      <button type="submit"> Post</button>
+      <button type="submit" disabled={isPosting}>Post</button>
     </form>
   )
 }

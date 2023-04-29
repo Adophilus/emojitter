@@ -26,7 +26,8 @@ export const postsRouter = createTRPCRouter({
     const posts = await ctx.prisma.post.findMany({ take: 100 });
     const users = await clerkClient.users.getUserList({
       userId: posts.map((post) => post.authorId),
-      limit: 100
+      limit: 100,
+      orderBy: "+created_at"
     })
 
     return posts.map(post => {
