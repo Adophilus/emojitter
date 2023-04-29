@@ -9,12 +9,13 @@ dayjs.extend(relativeTime)
 
 import { RouterOutputs, api } from "~/utils/api";
 import Loading from "~/components/loading";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import toast from "react-hot-toast";
+import LoadingSpinner, { Size } from "~/components/loading-spinner";
 
 const CreatePostWizard = () => {
   const { user } = useUser();
-  const inputRef = useRef<HTMLInputElement>()
+  const [postContent, setPostContent] = useState("")
   const ctx = api.useContext()
   const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
     onError: (e) => {
@@ -25,17 +26,13 @@ const CreatePostWizard = () => {
         toast.error("Failed to post. Please try again later!")
     },
     onSuccess: async () => {
-      if (!inputRef.current) return
-
-      inputRef.current.value = ''
+      setPostContent("")
       await ctx.posts.getAll.invalidate()
     }
   })
 
   const createPost = () => {
-    if (!inputRef.current) return
-
-    mutate({ content: inputRef.current.value })
+    mutate({ content: postContent })
   }
 
   if (!user) return null
@@ -48,8 +45,11 @@ const CreatePostWizard = () => {
           createPost()
       }} className="flex w-full gap-x-3" >
       <Image className="flex w-14 h-14 rounded-full" src={user.profileImageUrl} alt={`@${user.id}'s profile picture`} width={56} height={56} />
-      <input placeholder="Type some emojis!" ref={inputRef} className="bg-transparent grow outline-none" disabled={isPosting} />
-      <button type="submit" disabled={isPosting}>Post</button>
+      <input placeholder="Type some emojis!" onChange={(e) => setPostContent(e.target.value)} value={postContent} className="bg-transparent grow outline-none" disabled={isPosting} />
+      <div className="flex justify-center items-center">
+        {postContent !== "" && !isPosting ? <button type="submit">Post</button> : null}
+        {isPosting ? <LoadingSpinner size={Size.small} /> : null}
+      </div>
     </form>
   )
 }
