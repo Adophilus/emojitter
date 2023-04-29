@@ -1,5 +1,5 @@
 export enum Size {
-  small = "w-8 h-8",
+  small = "w-6 h-6",
   medium = "w-10 h-10",
   large = "w-12 h-12"
 }
