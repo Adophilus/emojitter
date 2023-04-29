@@ -1,9 +1,18 @@
 import { User } from "@clerk/nextjs/api";
 import { clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 import { z } from "zod";
 
 import { createTRPCRouter, privateProcedure, publicProcedure } from "~/server/api/trpc";
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(3, "1 m"),
+  analytics: true,
+  prefix: "@upstash/ratelimit",
+});
 
 const mapUserToAuthor = (user: User) => {
   return { id: user.id, username: user.username, profilePicture: user.profileImageUrl };
@@ -13,9 +22,15 @@ export const postsRouter = createTRPCRouter({
   create: privateProcedure.input(z.object({
     content: z.string().emoji().min(1).max(200)
   })).mutation(async ({ ctx, input }) => {
+    const authorId = ctx.userId
+
+    const { success } = await ratelimit.limit(authorId);
+    if (!success)
+      throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Too many requests" });
+
     const post = await ctx.prisma.post.create({
       data: {
-        authorId: ctx.userId,
+        authorId,
         content: input.content
       }
     })
