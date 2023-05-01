@@ -24,7 +24,9 @@ specifiers:
   next: ^13.2.4
   postcss: ^8.4.21
   prettier: ^2.8.6
-  prettier-plugin-tailwindcss: ^0.2.6
+  prettier-plugin-organize-imports: ^3.2.2
+  prettier-plugin-prisma: ^4.13.0
+  prettier-plugin-tailwindcss: ^0.2.7
   prisma: ^4.11.0
   react: 18.2.0
   react-dom: 18.2.0
@@ -65,7 +67,9 @@ devDependencies:
   eslint-config-next: 13.3.1_iacogk7kkaymxepzhgcbytyi7q
   postcss: 8.4.23
   prettier: 2.8.8
-  prettier-plugin-tailwindcss: 0.2.7_prettier@2.8.8
+  prettier-plugin-organize-imports: 3.2.2_j5pxtsccu66l27vudenovfwlqy
+  prettier-plugin-prisma: 4.13.0_prettier@2.8.8
+  prettier-plugin-tailwindcss: 0.2.7_gnr54ully4dh7fjepwugsmyo7i
   prisma: 4.13.0
   tailwindcss: 3.3.2
   typescript: 5.0.4
@@ -420,6 +424,10 @@ packages:
   /@prisma/engines/4.13.0:
     resolution: {integrity: sha512-HrniowHRZXHuGT9XRgoXEaP2gJLXM5RMoItaY2PkjvuZ+iHc0Zjbm/302MB8YsPdWozAPHHn+jpFEcEn71OgPw==}
     requiresBuild: true
+
+  /@prisma/prisma-fmt-wasm/4.13.0-52.integration-mobc-upstream-d100a9299fcb9cffb064301998e9a94ce2722c49:
+    resolution: {integrity: sha512-12dZRXW36s3hRHLeD8c4S3o1ZZcnFt1NxhBrSlYepnMxatfkj5S8aIDP/G+zzUqucB//kGZZWNX3eUcmxMsEqw==}
+    dev: true
 
   /@rushstack/eslint-patch/1.2.0:
     resolution: {integrity: sha512-sXo/qW2/pAcmT43VoRKOJbDOfV3cYpq3szSVfIThQXNt+E4DfKj361vaAt3c88U5tPUxzEswam7GW48PJqtKAg==}
@@ -2636,7 +2644,34 @@ packages:
     engines: {node: '>= 0.8.0'}
     dev: true
 
-  /prettier-plugin-tailwindcss/0.2.7_prettier@2.8.8:
+  /prettier-plugin-organize-imports/3.2.2_j5pxtsccu66l27vudenovfwlqy:
+    resolution: {integrity: sha512-e97lE6odGSiHonHJMTYC0q0iLXQyw0u5z/PJpvP/3vRy6/Zi9kLBwFAbEGjDzIowpjQv8b+J04PDamoUSQbzGA==}
+    peerDependencies:
+      '@volar/vue-language-plugin-pug': ^1.0.4
+      '@volar/vue-typescript': ^1.0.4
+      prettier: '>=2.0'
+      typescript: '>=2.9'
+    peerDependenciesMeta:
+      '@volar/vue-language-plugin-pug':
+        optional: true
+      '@volar/vue-typescript':
+        optional: true
+    dependencies:
+      prettier: 2.8.8
+      typescript: 5.0.4
+    dev: true
+
+  /prettier-plugin-prisma/4.13.0_prettier@2.8.8:
+    resolution: {integrity: sha512-bnOWoQTVXM9VWBErPGE6rVgI8kCQts+DMQolg7Sj/Q0/oAlpDYOhce4ljQKf5BhJW061yrB3+CRVps6tNcUkQg==}
+    engines: {node: '>=14', npm: '>=8'}
+    peerDependencies:
+      prettier: '>=2'
+    dependencies:
+      '@prisma/prisma-fmt-wasm': 4.13.0-52.integration-mobc-upstream-d100a9299fcb9cffb064301998e9a94ce2722c49
+      prettier: 2.8.8
+    dev: true
+
+  /prettier-plugin-tailwindcss/0.2.7_gnr54ully4dh7fjepwugsmyo7i:
     resolution: {integrity: sha512-jQopIOgjLpX+y8HeD56XZw7onupRTC0cw7eKKUimI7vhjkPF5/1ltW5LyqaPtSyc8HvEpvNZsvvsGFa2qpa59w==}
     engines: {node: '>=12.17.0'}
     peerDependencies:
@@ -2689,6 +2724,7 @@ packages:
         optional: true
     dependencies:
       prettier: 2.8.8
+      prettier-plugin-organize-imports: 3.2.2_j5pxtsccu66l27vudenovfwlqy
     dev: true
 
   /prettier/2.8.8:
