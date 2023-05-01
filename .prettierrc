@@ -1,0 +1,16 @@
+{
+  "printWidth": 80,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": false,
+  "arrowParens": "always",
+  "singleQuote": true,
+  "trailingComma": "none",
+  "bracketSpacing": true,
+  "plugins": [
+    "prettier-plugin-prisma",
+    "prettier-plugin-organize-imports",
+    "prettier-plugin-tailwindcss"
+  ],
+  "pluginSearchDirs": false
+}
