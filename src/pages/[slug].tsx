@@ -12,6 +12,19 @@ import { prisma } from "~/server/db";
 import { appRouter } from "~/server/api/root";
 import PageLayout from "~/components/layout";
 import Image from "next/image";
+import Loading from "~/components/loading";
+import PostView from "~/components/post-view";
+
+const ProfileFeed = (props: { userId: string }) => {
+  const { data, isLoading } = api.posts.getPostByUserId.useQuery({ userId: props.userId })
+
+  if (isLoading) return <Loading />
+  if (!data || !data.length) return <div>User has not posted</div>
+
+  return <div className="flex flex-col">
+    {data.map(({ post, author }) => <PostView post={post} author={author} key={post.id} />)}
+  </div>
+}
 
 type PageProps = { username: string }
 const ProfilePage: NextPage<PageProps> = ({ username }) => {
@@ -30,8 +43,11 @@ const ProfilePage: NextPage<PageProps> = ({ username }) => {
         <div>
           <Image src={data.profilePicture} alt={`${data.username ?? ''}'s profile picture`} width={48} height={48} className="-translate-y-1/2 mx-4 bg-black bottom-0 h-24 w-24 rounded-full border-4 border-black" />
         </div>
-        <div className="p-4 -mt-10 border-b border-slate-400 w-full">
+        <div className="p-4 pb-10 -mt-10 border-b border-slate-400 w-full">
           <h2 className="text-2xl font-bold">@{data.username}</h2>
+        </div>
+        <div>
+          <ProfileFeed userId={data.id} />
         </div>
       </PageLayout>
     </>
