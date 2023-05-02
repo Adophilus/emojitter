@@ -1,4 +1,5 @@
 import { clerkClient } from "@clerk/nextjs/server";
+import { Post } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
@@ -13,6 +14,32 @@ const ratelimit = new Ratelimit({
   analytics: true,
   prefix: "@upstash/ratelimit",
 });
+
+const addUserDataToPosts = async (posts: Post[]) => {
+  const users = await clerkClient.users.getUserList({
+    userId: posts.map((post) => post.authorId),
+    limit: 100
+  })
+
+  return posts.map(post => {
+    const user = users.find(user => user.id === post.authorId)
+
+    if (!user) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Author for post not found!" })
+
+    const author = mapUserToAuthor(user)
+    const email = user.emailAddresses[0]?.emailAddress.match(/^([^@]+)@/)?.[1]
+
+    if (!email) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Invalid email address!" })
+
+    return {
+      post,
+      author: {
+        ...author,
+        username: email
+      }
+    }
+  })
+}
 
 
 export const postsRouter = createTRPCRouter({
@@ -36,28 +63,17 @@ export const postsRouter = createTRPCRouter({
 
   getAll: publicProcedure.query(async ({ ctx }) => {
     const posts = await ctx.prisma.post.findMany({ take: 100, orderBy: [{ createdAt: "desc" }] });
-    const users = await clerkClient.users.getUserList({
-      userId: posts.map((post) => post.authorId),
-      limit: 100
-    })
 
-    return posts.map(post => {
-      const user = users.find(user => user.id === post.authorId)
-
-      if (!user) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Author for post not found!" })
-
-      const author = mapUserToAuthor(user)
-      const email = user.emailAddresses[0]?.emailAddress.match(/^([^@]+)@/)?.[1]
-
-      if (!email) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Invalid email address!" })
-
-      return {
-        post,
-        author: {
-          ...author,
-          username: email
-        }
-      }
-    })
+    return await addUserDataToPosts(posts)
   }),
+
+  getPostByUserId: publicProcedure.input(z.object({ userId: z.string() })).query(async ({ ctx, input }) => {
+    const posts = await ctx.prisma.post.findMany({
+      where: {
+        authorId: input.userId
+      },
+      orderBy: [{ createdAt: "desc" }]
+    })
+    return await addUserDataToPosts(posts)
+  })
 });
