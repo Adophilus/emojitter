@@ -10,8 +10,10 @@ dayjs.extend(relativeTime)
 import { api } from "~/utils/api";
 import { prisma } from "~/server/db";
 import { appRouter } from "~/server/api/root";
+import PageLayout from "~/components/layout";
+import Image from "next/image";
 
-type PageProps = InferGetStaticPropsType<typeof getStaticProps>
+type PageProps = { username: string }
 const ProfilePage: NextPage<PageProps> = ({ username }) => {
   const { data } = api.profile.getUserByUsername.useQuery({ username })
 
@@ -22,9 +24,16 @@ const ProfilePage: NextPage<PageProps> = ({ username }) => {
       <Head>
         <title>Emojitter | Profile</title>
       </Head>
-      <main className="flex justify-center min-h-screen">
-        {data.username}
-      </main>
+      <PageLayout>
+        <div className="border-b border-slate-400 bg-slate-600 h-40">
+        </div>
+        <div>
+          <Image src={data.profilePicture} alt={`${data.username ?? ''}'s profile picture`} width={48} height={48} className="-translate-y-1/2 mx-4 bg-black bottom-0 h-24 w-24 rounded-full border-4 border-black" />
+        </div>
+        <div className="p-4 -mt-10 border-b border-slate-400 w-full">
+          <h2 className="text-2xl font-bold">@{data.username}</h2>
+        </div>
+      </PageLayout>
     </>
   );
 };
