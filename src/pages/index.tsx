@@ -13,6 +13,7 @@ import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 import LoadingSpinner, { Size } from "~/components/loading-spinner";
 import Link from "next/link";
+import PageLayout from "~/components/layout";
 
 const CreatePostWizard = () => {
   const { user } = useUser();
@@ -98,21 +99,14 @@ const Home: NextPage = () => {
 
   return (
     <>
-      <Head>
-        <title>Emojitter</title>
-        <meta name="description" content="Chat app but emojis only 😀" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <main className="flex justify-center min-h-screen">
-        <div className="w-full md:max-w-2xl border-x border-slate-400">
-          <div className="flex p-4 border-b border-slate-400">
-            <div className="grow">
-              {!isUserSignedIn ? <SignInButton /> : <CreatePostWizard />}
-            </div>
+      <PageLayout>
+        <div className="flex p-4 border-b border-slate-400">
+          <div className="grow">
+            {!isUserSignedIn ? <SignInButton /> : <CreatePostWizard />}
           </div>
-          <PostsFeed />
         </div>
-      </main>
+        <PostsFeed />
+      </PageLayout>
     </>
   );
 };
