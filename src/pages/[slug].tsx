@@ -16,7 +16,7 @@ import Loading from "~/components/loading";
 import PostView from "~/components/post-view";
 
 const ProfileFeed = (props: { userId: string }) => {
-  const { data, isLoading } = api.posts.getPostByUserId.useQuery({ userId: props.userId })
+  const { data, isLoading } = api.posts.getPostsByUserId.useQuery({ userId: props.userId })
 
   if (isLoading) return <Loading />
   if (!data || !data.length) return <div>User has not posted</div>
@@ -35,7 +35,7 @@ const ProfilePage: NextPage<PageProps> = ({ username }) => {
   return (
     <>
       <Head>
-        <title>Emojitter | Profile</title>
+        <title>Emojitter | Profile | {data.username}</title>
       </Head>
       <PageLayout>
         <div className="border-b border-slate-400 bg-slate-600 h-40">

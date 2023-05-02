@@ -1,26 +1,63 @@
-import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
-import { type NextPage } from "next";
+import type { GetStaticProps, InferGetStaticPropsType, NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import { createServerSideHelpers } from '@trpc/react-query/server';
+import superjson from 'superjson'
 
 dayjs.extend(relativeTime)
 
-import { RouterOutputs, api } from "~/utils/api";
+import { api } from "~/utils/api";
+import { prisma } from "~/server/db";
+import { appRouter } from "~/server/api/root";
+import PageLayout from "~/components/layout";
 import Loading from "~/components/loading";
-import { useRef, useState } from "react";
-import toast from "react-hot-toast";
-import LoadingSpinner, { Size } from "~/components/loading-spinner";
+import PostView from "~/components/post-view";
 
-const SinglePostPage: NextPage = () => {
+type PageProps = { postId: string }
+const SinglePostPage: NextPage<PageProps> = ({ postId }) => {
+  const { data, isLoading } = api.posts.getById.useQuery({ postId })
+
+  if (isLoading) return <Loading />
+  if (!data) return <div>No post found</div>
+
   return (
     <>
-      <main className="flex justify-center min-h-screen">
-        <div>Post View</div>
-      </main>
+      <Head>
+        <title>Emojitter | {data.post.content.slice(0, 10)}</title>
+      </Head>
+      <PageLayout>
+        <div>
+          <PostView post={data.post} author={data.author} />
+        </div>
+      </PageLayout>
     </>
   );
 };
+
+export const getStaticProps: GetStaticProps = async (context) => {
+  const ssg = createServerSideHelpers({
+    router: appRouter,
+    ctx: { prisma, userId: null },
+    transformer: superjson
+  });
+  const id = context.params?.id
+
+  if (typeof id !== 'string') throw new Error("No id!")
+
+  await ssg.posts.getById.prefetch({ postId: id })
+  return {
+    props: {
+      trpcState: ssg.dehydrate(),
+      postId: id
+    }
+  }
+}
+
+export const getStaticPaths = () => {
+  return {
+    paths: [], fallback: "blocking"
+  }
+}
 
 export default SinglePostPage;
